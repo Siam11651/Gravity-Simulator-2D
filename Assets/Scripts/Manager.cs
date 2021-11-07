@@ -10,7 +10,7 @@ public class Manager : MonoBehaviour
     [SerializeField] private InputField inputFieldNewPlanetPositionX, inputFieldNewPlanetPositionY, inputFieldNewPlanetVelocityX, inputFieldNewPlanetVelocityY, inputFieldNewPlanetMass, inputFieldNewPlanetRadius, inputFieldNewPlanetName, inputFieldG;
     [SerializeField] private Slider sliderNewPlanetR, sliderNewPlanetG, sliderNewPlanetB;
     [SerializeField] private Toggle toggleDynamic;
-    [SerializeField] private Button buttonSelectedPlanetPanelClose, buttonSelectedPlanetDelete, buttonSettings, buttonAddPlanet, buttonCloseSettings, buttonPlayPause;
+    [SerializeField] private Button buttonSelectedPlanetPanelClose, buttonSelectedPlanetDelete, buttonSettings, buttonAddPlanet, buttonCloseSettings, buttonPlayPause, buttonReset;
     private GameObject planetToBeAdded, selectedPlanet;
     private List<GameObject> _planets;
     private float _G;
@@ -36,6 +36,19 @@ public class Manager : MonoBehaviour
         planetToBeAdded = null;
         _planets = new List<GameObject>();
         _G = float.Parse(inputFieldG.text);
+        toggleDynamic.onValueChanged.AddListener((bool newValue) =>
+        {
+            if(newValue)
+            {
+                inputFieldNewPlanetVelocityX.interactable = true;
+                inputFieldNewPlanetVelocityY.interactable = true;
+            }
+            else
+            {
+                inputFieldNewPlanetVelocityX.interactable = false;
+                inputFieldNewPlanetVelocityY.interactable = false;
+            }
+        });
         inputFieldNewPlanetPositionX.onValueChanged.AddListener((string newValue)=>
         {
             float newFloat;
@@ -149,6 +162,15 @@ public class Manager : MonoBehaviour
                 textPlayPause.text = "▶";
             }
         });
+        buttonReset.onClick.AddListener(()=>
+        {
+            foreach(GameObject gObject in planets)
+            {
+                Destroy(gObject);
+            }
+
+            planets.Clear();
+        });
     }
 
     // Update is called once per frame
@@ -228,18 +250,22 @@ public class Manager : MonoBehaviour
         PlanetBehaviour planetBehaviour = planetToBeAdded.GetComponent<PlanetBehaviour>();
         planetBehaviour.gActive = true;
         planetBehaviour.isDynamic = toggleDynamic.isOn;
-        planetToBeAdded.GetComponent<Rigidbody>().velocity = new Vector2(newVelocityX, newVelocityY);
         planetToBeAdded.GetComponent<Rigidbody>().mass = newMass;
         TrailRenderer trailRenderer = planetToBeAdded.GetComponent<TrailRenderer>();
 
         if(planetBehaviour.isDynamic)
         {
+            planetToBeAdded.GetComponent<Rigidbody>().velocity = new Vector2(newVelocityX, newVelocityY);
             trailRenderer.enabled = true;
             trailRenderer.startWidth = planetToBeAdded.transform.localScale.x * 0.5f;
             trailRenderer.endWidth = planetToBeAdded.transform.localScale.x * 0.5f;
             Color color = planetToBeAdded.GetComponent<SpriteRenderer>().color;
             trailRenderer.startColor = new Color(color.r, color.g, color.b, 0.4f);
             trailRenderer.endColor = new Color(color.r, color.g, color.b, 0);
+        }
+        else
+        {
+            planetToBeAdded.GetComponent<Rigidbody>().velocity = Vector2.zero;
         }
         
         planets.Add(planetToBeAdded);

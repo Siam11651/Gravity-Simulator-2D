@@ -43,7 +43,7 @@ public class PlanetBehaviour : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(gActive && isDynamic)
+        if(Time.timeScale != 0 && gActive && isDynamic)
         {
             Vector2 totalForce = Vector2.zero;
 
