@@ -7,21 +7,24 @@ public class Manager : MonoBehaviour
 {
     [SerializeField] private GameObject panelNewPlanet, referencePlanet, panelSelectedPlanet, panelSettings;
     [SerializeField] private Text textSelectedPlanetName, textSelectedPlanetPositionX, textSelectedPlanetPositionY;
-    [SerializeField] private InputField inputFieldNewPlanetPositionX, inputFieldNewPlanetPositionY, inputFieldNewPlanetVelocityX, inputFieldNewPlanetVelocityY, inputFieldNewPlanetMass, inputFieldNewPlanetRadius, inputFieldNewPlanetName, inputFieldG;
+    [SerializeField] private InputField inputFieldNewPlanetPositionX, inputFieldNewPlanetPositionY, inputFieldNewPlanetVelocityX, inputFieldNewPlanetVelocityY, inputFieldNewPlanetMass, inputFieldNewPlanetRadius, inputFieldNewPlanetName, inputFieldG, inputFieldTrailLength;
     [SerializeField] private Slider sliderNewPlanetR, sliderNewPlanetG, sliderNewPlanetB;
-    [SerializeField] private Toggle toggleDynamic;
-    [SerializeField] private Button buttonSelectedPlanetPanelClose, buttonSelectedPlanetDelete, buttonSettings, buttonAddPlanet, buttonCloseSettings, buttonPlayPause, buttonReset;
+    [SerializeField] private Toggle toggleDynamic, toggleCollission;
+    [SerializeField] private Button buttonConfirmNewPlanet, buttonSelectedPlanetPanelClose, buttonSelectedPlanetDelete, buttonSettings, buttonAddPlanet, buttonCloseSettings, buttonPlayPause, buttonReset;
     private GameObject planetToBeAdded, selectedPlanet;
-    private List<GameObject> _planets;
-    private float _G;
-    public float G
+    // planetToBeAdded = a temporary reference to planet going to be added until confirmed
+    // selectedPlanet = a temporary reference to selected planet by left mouse click
+    private List<GameObject> _planets; // keep all planets in a 'List' of 'GameObject's
+    private float trailLength; // length of trail behind planets
+    private float _G; // Universal Gravitational constant
+    public float G // Universal Gravitational constant getter
     {
         get
         {
             return _G;
         }
     }
-    public List<GameObject> planets
+    public List<GameObject> planets //planets list getter
     {
         get
         {
@@ -38,56 +41,99 @@ public class Manager : MonoBehaviour
         _G = float.Parse(inputFieldG.text);
         toggleDynamic.onValueChanged.AddListener((bool newValue) =>
         {
-            if(newValue)
+            inputFieldNewPlanetVelocityX.interactable = newValue;
+            inputFieldNewPlanetVelocityY.interactable = newValue;
+        });
+        toggleCollission.onValueChanged.AddListener((bool newValue)=>
+        {
+            foreach(GameObject gObject in planets)
             {
-                inputFieldNewPlanetVelocityX.interactable = true;
-                inputFieldNewPlanetVelocityY.interactable = true;
-            }
-            else
-            {
-                inputFieldNewPlanetVelocityX.interactable = false;
-                inputFieldNewPlanetVelocityY.interactable = false;
+                SphereCollider sphereCollider = gObject.GetComponent<SphereCollider>();
+                sphereCollider.isTrigger = !newValue;
             }
         });
         inputFieldNewPlanetPositionX.onValueChanged.AddListener((string newValue)=>
         {
             float newFloat;
+            bool isParsed = float.TryParse(newValue, out newFloat);
 
-            if(planetToBeAdded != null && float.TryParse(newValue, out newFloat))
+            if(planetToBeAdded != null && isParsed)
             {
                 planetToBeAdded.transform.position = new Vector2(newFloat, planetToBeAdded.transform.position.y);
             }
+
+            buttonConfirmNewPlanet.interactable = isParsed;
         });
         inputFieldNewPlanetPositionY.onValueChanged.AddListener((string newValue) =>
         {
             float newFloat;
+            bool isParsed = float.TryParse(newValue, out newFloat);
 
-            if(planetToBeAdded != null && float.TryParse(newValue, out newFloat))
+            if(planetToBeAdded != null && isParsed)
             {
                 planetToBeAdded.transform.position = new Vector2(planetToBeAdded.transform.position.x, newFloat);
             }
+
+            buttonConfirmNewPlanet.interactable = isParsed;
+        });
+        inputFieldNewPlanetVelocityX.onValueChanged.AddListener((string newValue)=>
+        {
+            float newFloat;
+            bool isParsed = float.TryParse(newValue, out newFloat);
+            buttonConfirmNewPlanet.interactable = isParsed;
+        });
+        inputFieldNewPlanetVelocityY.onValueChanged.AddListener((string newValue) =>
+        {
+            float newFloat;
+            bool isParsed = float.TryParse(newValue, out newFloat);
+            buttonConfirmNewPlanet.interactable = isParsed;
+        });
+        inputFieldNewPlanetName.onValueChanged.AddListener((string newValue)=>
+        {
+            bool isGoodName = newValue.Length != 0;
+            buttonConfirmNewPlanet.interactable = isGoodName;
+        });
+        inputFieldNewPlanetMass.onValueChanged.AddListener((string newValue)=>
+        {
+            float newFloat;
+            bool isParsed = float.TryParse(newValue, out newFloat);
+            buttonConfirmNewPlanet.interactable = isParsed;
         });
         inputFieldNewPlanetRadius.onValueChanged.AddListener((string newValue) =>
         {
             float newFloat;
+            bool isParsed = float.TryParse(newValue, out newFloat);
 
-            if(planetToBeAdded != null && float.TryParse(newValue, out newFloat))
+            if(planetToBeAdded != null && isParsed)
             {
                 planetToBeAdded.transform.localScale = new Vector2(newFloat, newFloat) * 2;
             }
+
+            buttonConfirmNewPlanet.interactable = isParsed;
         });
-        inputFieldG.onEndEdit.AddListener((string newValue)=>
+        inputFieldG.onValueChanged.AddListener((string newValue)=>
         {
             float newFloat;
+            bool isParsed = float.TryParse(newValue, out newFloat);
 
-            if(float.TryParse(newValue, out newFloat))
+            if(isParsed)
             {
                 _G = newFloat;
             }
-            else
+
+            buttonCloseSettings.interactable = isParsed;
+        });
+        inputFieldTrailLength.onValueChanged.AddListener((string newValue) =>
+        {
+            float newFloat;
+            bool isParsed = float.TryParse(newValue, out newFloat);
+
+            if(isParsed)
             {
-                inputFieldG.text = G.ToString("e3");
+                trailLength = newFloat;
             }
+
+            buttonCloseSettings.interactable = isParsed;
         });
         sliderNewPlanetR.onValueChanged.AddListener((float newValue) =>
         {
@@ -134,6 +180,7 @@ public class Manager : MonoBehaviour
             buttonAddPlanet.enabled = false;
             buttonSettings.enabled = false;
             buttonPlayPause.enabled = false;
+            buttonCloseSettings.interactable = true;
 
             panelSettings.SetActive(true);
         });
@@ -142,6 +189,12 @@ public class Manager : MonoBehaviour
             buttonAddPlanet.enabled = true;
             buttonSettings.enabled = true;
             buttonPlayPause.enabled = true;
+
+            foreach(GameObject gObject in planets)
+            {
+                TrailRenderer trailRenderer = gObject.GetComponent<TrailRenderer>();
+                trailRenderer.time = trailLength;
+            }
 
             panelSettings.SetActive(false);
 
@@ -176,10 +229,15 @@ public class Manager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // zoom in/out on mouse vertical scroll
         Camera.main.orthographicSize = Mathf.Max(Camera.main.orthographicSize - Input.mouseScrollDelta.y, 0.01f);
+        // end zoom in/out on mouse vertical scroll
 
         if(Input.GetMouseButtonUp(0))
         {
+            // on mouse left up check if raycast parallel to z axis along...
+            // click position hits planet's sphere collider, if so activate...
+            // planet details ui panel
             Vector2 position = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Ray ray = new Ray(new Vector3(position.x, position.y, -1), new Vector3(0, 0, 1));
             RaycastHit hit;
@@ -198,12 +256,16 @@ public class Manager : MonoBehaviour
             {
                 selectedPlanet = null;
             }
+            // end on mouse left up check if raycast parallel to z axis along...
         }
 
         if(selectedPlanet != null)
         {
+            // if planet is selected by left click, keep updating planet position...
+            // in planet details ui panel
             textSelectedPlanetPositionX.text = selectedPlanet.transform.position.x.ToString("F2"); ;
             textSelectedPlanetPositionY.text = selectedPlanet.transform.position.y.ToString("F2");
+            // end if planet is selected by left click, keep updating planet position...
         }
     }
 
@@ -213,6 +275,7 @@ public class Manager : MonoBehaviour
         buttonSettings.enabled = false;
         buttonAddPlanet.enabled = false;
         buttonPlayPause.enabled = false;
+        buttonConfirmNewPlanet.interactable = true;
 
         panelNewPlanet.SetActive(true);
 
@@ -257,6 +320,7 @@ public class Manager : MonoBehaviour
         {
             planetToBeAdded.GetComponent<Rigidbody>().velocity = new Vector2(newVelocityX, newVelocityY);
             trailRenderer.enabled = true;
+            trailRenderer.time = trailLength;
             trailRenderer.startWidth = planetToBeAdded.transform.localScale.x * 0.5f;
             trailRenderer.endWidth = planetToBeAdded.transform.localScale.x * 0.5f;
             Color color = planetToBeAdded.GetComponent<SpriteRenderer>().color;

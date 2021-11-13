@@ -6,8 +6,11 @@ public class PlanetBehaviour : MonoBehaviour
 {
     private Manager manager;
     private bool _gActive, _isDynamic;
+    // gActive = if planet is confirmed to be added yet or not
+    // isDynamic = if planet is supposed to move or not
     private Rigidbody rb;
-    public bool gActive
+    // rigidbody of planet
+    public bool gActive // gActive getter and setter
     {
         get
         {
@@ -19,7 +22,7 @@ public class PlanetBehaviour : MonoBehaviour
             _gActive = value;
         }
     }
-    public bool isDynamic
+    public bool isDynamic // isDynamic getter and setter
     {
         get
         {
@@ -45,6 +48,7 @@ public class PlanetBehaviour : MonoBehaviour
     {
         if(Time.timeScale != 0 && gActive && isDynamic)
         {
+            // add force to each planets if it is active and dynamic and not paused
             Vector2 totalForce = Vector2.zero;
 
             foreach(GameObject gObject in manager.planets)
@@ -67,6 +71,7 @@ public class PlanetBehaviour : MonoBehaviour
             }
 
             rb.AddForce(totalForce);
+            // end add force to each planets if it is active and dynamic and not paused
         }
     }
 }
