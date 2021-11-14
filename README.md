@@ -7,7 +7,7 @@
  ![Screenshot 3](Screenshots/SS_3.png)
 
 ## Build Requirements:
- - Unity3D (Tested on version 2021.3.18f1)
+ - Unity3D
  - C# IDE (Visual Studio, Visual Studio Code, Rider etc.)
 
 ## Build Steps:
