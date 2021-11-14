@@ -8,14 +8,16 @@ public class Manager : MonoBehaviour
     [SerializeField] private GameObject panelNewPlanet, referencePlanet, panelSelectedPlanet, panelSettings;
     [SerializeField] private Text textSelectedPlanetName, textSelectedPlanetPositionX, textSelectedPlanetPositionY;
     [SerializeField] private InputField inputFieldNewPlanetPositionX, inputFieldNewPlanetPositionY, inputFieldNewPlanetVelocityX, inputFieldNewPlanetVelocityY, inputFieldNewPlanetMass, inputFieldNewPlanetRadius, inputFieldNewPlanetName, inputFieldG, inputFieldTrailLength;
-    [SerializeField] private Slider sliderNewPlanetR, sliderNewPlanetG, sliderNewPlanetB;
+    [SerializeField] private Slider sliderNewPlanetR, sliderNewPlanetG, sliderNewPlanetB, sliderTrailTransparency;
     [SerializeField] private Toggle toggleDynamic, toggleCollission;
     [SerializeField] private Button buttonConfirmNewPlanet, buttonSelectedPlanetPanelClose, buttonSelectedPlanetDelete, buttonSettings, buttonAddPlanet, buttonCloseSettings, buttonPlayPause, buttonReset;
     private GameObject planetToBeAdded, selectedPlanet;
     // planetToBeAdded = a temporary reference to planet going to be added until confirmed
     // selectedPlanet = a temporary reference to selected planet by left mouse click
     private List<GameObject> _planets; // keep all planets in a 'List' of 'GameObject's
-    private float trailLength; // length of trail behind planets
+    private float trailLength, trailTransparency;
+    // trailLength = length of trail behind planets
+    // traileTransparency = transparency of trail behind planets
     private float _G; // Universal Gravitational constant
     public float G // Universal Gravitational constant getter
     {
@@ -39,6 +41,8 @@ public class Manager : MonoBehaviour
         planetToBeAdded = null;
         _planets = new List<GameObject>();
         _G = float.Parse(inputFieldG.text);
+        trailLength = float.Parse(inputFieldTrailLength.text);
+        trailTransparency = sliderTrailTransparency.value / 255.0f;
         toggleDynamic.onValueChanged.AddListener((bool newValue) =>
         {
             inputFieldNewPlanetVelocityX.interactable = newValue;
@@ -159,6 +163,10 @@ public class Manager : MonoBehaviour
                 spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, newValue / 255f);
             }
         });
+        sliderTrailTransparency.onValueChanged.AddListener((float newValue) =>
+        {
+            trailTransparency = newValue / 255.0f;
+        });
         buttonSelectedPlanetPanelClose.onClick.AddListener(()=>
         {
             selectedPlanet = null;
@@ -194,6 +202,8 @@ public class Manager : MonoBehaviour
             {
                 TrailRenderer trailRenderer = gObject.GetComponent<TrailRenderer>();
                 trailRenderer.time = trailLength;
+                Color color = trailRenderer.startColor;
+                trailRenderer.startColor = new Color(color.r, color.g, color.b, trailTransparency);
             }
 
             panelSettings.SetActive(false);
@@ -324,7 +334,7 @@ public class Manager : MonoBehaviour
             trailRenderer.startWidth = planetToBeAdded.transform.localScale.x * 0.5f;
             trailRenderer.endWidth = planetToBeAdded.transform.localScale.x * 0.5f;
             Color color = planetToBeAdded.GetComponent<SpriteRenderer>().color;
-            trailRenderer.startColor = new Color(color.r, color.g, color.b, 0.4f);
+            trailRenderer.startColor = new Color(color.r, color.g, color.b, trailTransparency);
             trailRenderer.endColor = new Color(color.r, color.g, color.b, 0);
         }
         else
