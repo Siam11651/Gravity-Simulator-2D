@@ -46,6 +46,11 @@ public class PlanetBehaviour : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        
+    }
+
+    void FixedUpdate()
+    {
         if(Time.timeScale != 0 && gActive && isDynamic)
         {
             // add force to each planets if it is active and dynamic and not paused
@@ -70,7 +75,7 @@ public class PlanetBehaviour : MonoBehaviour
                 }
             }
 
-            rb.AddForce(totalForce);
+            rb.AddForce(totalForce * Time.fixedDeltaTime, ForceMode.Impulse);
             // end add force to each planets if it is active and dynamic and not paused
         }
     }
